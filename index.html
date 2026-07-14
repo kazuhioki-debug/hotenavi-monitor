@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空室状況モニター</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f5f5f5; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: inline-block; min-width: 280px; }
+        .num { font-size: 2.5rem; font-weight: bold; color: #333; }
+        .empty { color: #2ecc71; }
+        .ready { color: #e67e22; }
+        .time { font-size: 0.8rem; color: #7f8c8d; margin-top: 15px; }
+        button { margin-top: 20px; padding: 10px 20px; border: none; background: #3498db; color: white; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>リアルタイム空室状況</h2>
+        <div>空室: <span id="empty-rooms" class="num empty">-</span> 室</div>
+        <div style="margin-top: 15px;">準備中: <span id="ready-rooms" class="num ready">-</span> 室</div>
+        <div id="update-time" class="time">データ未取得</div>
+        <button onclick="fetchStatus()">手動更新</button>
+    </div>
+
+    <script>
+        // 先ほどコピーしたGASのウェブアプリURLに差し替えてください
+        const gasUrl = "ここにGASで発行されたURLを貼り付け";
+
+        function fetchStatus() {
+            document.getElementById('update-time').innerText = "読み込み中...";
+            
+            fetch(gasUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status === "success") {
+                        document.getElementById('empty-rooms').innerText = data.empty;
+                        document.getElementById('ready-rooms').innerText = data.ready;
+                        document.getElementById('update-time').innerText = "取得日時: " + data.updatedAt + " (20分間隔更新)";
+                    } else {
+                        document.getElementById('update-time').innerText = "エラー: データ抽出に失敗";
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('update-time').innerText = "通信エラーが発生しました";
+                    console.error(error);
+                });
+        }
+
+        // 起動時に初回読み込み
+        fetchStatus();
+    </script>
+</body>
+</html>
