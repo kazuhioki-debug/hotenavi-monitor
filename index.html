@@ -1,4 +1,10 @@
-<style>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空室状況モニター</title>
+    <style>
         /* 1. 画面全体の背景（薄いグレー） */
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -19,6 +25,7 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* 柔らかい影 */
             text-align: center;
+            transition: opacity 0.3s;
         }
 
         /* 3. タイトル */
@@ -34,7 +41,7 @@
         .monitor-row {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 15px;
             margin-bottom: 20px;
         }
 
@@ -48,15 +55,16 @@
         .ready-box { background: #fff3e0; border: 1px solid #ffe0b2; } /* 薄いオレンジ */
 
         .label {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: #7f8c8d;
             margin-bottom: 5px;
             display: block;
+            font-weight: bold;
         }
 
         /* 5. 数字 */
         .num {
-            font-size: 2.8rem;
+            font-size: 2.4rem;
             font-weight: 700;
             line-height: 1;
             display: inline-block;
@@ -66,7 +74,7 @@
         .ready { color: #e67e22; } /* 濃いオレンジ */
 
         .unit {
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: #7f8c8d;
             vertical-align: bottom;
         }
@@ -76,7 +84,7 @@
             font-size: 0.75rem;
             color: #7f8c8d;
             background: #f8f9fa;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 20px;
             display: inline-block;
             margin-top: 10px;
@@ -95,14 +103,64 @@
             font-weight: 600;
             transition: background 0.3s, transform 0.1s;
             box-shadow: 0 4px 10px rgba(52,152,219,0.3);
+            width: 100%;
         }
 
         button:hover { background: #2980b9; }
         button:active { transform: translateY(1px); }
 
-        /* 通信中の時のスタイル */
+        /* 通信中の時のスタイル（薄暗くして連打を防ぐ） */
         .loading {
             opacity: 0.5;
             pointer-events: none;
         }
     </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>リアルタイム空室状況</h2>
+        
+        <div class="monitor-row">
+            <div class="monitor-box empty-box">
+                <span class="label">空室</span>
+                <span id="empty-rooms" class="num empty">-</span><span class="unit">室</span>
+            </div>
+            <div class="monitor-box ready-box">
+                <span class="label">準備中</span>
+                <span id="ready-rooms" class="num ready">-</span><span class="unit">室</span>
+            </div>
+        </div>
+
+        <div id="update-time" class="time">データ未取得</div>
+        <button onclick="fetchStatus()">手動更新</button>
+    </div>
+
+    <script>
+        const gasUrl = "https://script.google.com/macros/s/AKfycbwa3HTkFUbvar9KyQjS7hMbNKCVM5BGGmqCJDr5esrXaEqOHLvUR6GqNbsTcZMNY90B/exec";
+
+        function fetchStatus() {
+            // ボタンとカードを「読み込み中」の見た目にする
+            const card = document.querySelector('.card');
+            const btn = document.querySelector('button');
+            card.classList.add('loading');
+            btn.innerText = "更新中...";
+            
+            fetch(gasUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status === "success") {
+                        document.getElementById('empty-rooms').innerText = data.empty;
+                        document.getElementById('ready-rooms').innerText = data.ready;
+                        document.getElementById('update-time').innerText = "取得日時: " + data.updatedAt;
+                    } else {
+                        document.getElementById('update-time').innerText = "エラー: データ抽出に失敗";
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('update-time').innerText = "通信エラーが発生しました";
+                    console.error(error);
+                })
+                .finally(() => {
+                    // 通信が終わったら元の表示に戻す
+                    card.
