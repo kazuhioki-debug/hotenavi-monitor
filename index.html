@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>空室状況モニター</title>
     <style>
-        /* 1. 画面全体の背景（薄いグレー） */
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
             background: #f0f2f5;
@@ -16,19 +15,15 @@
             min-height: 100vh;
             color: #333;
         }
-
-        /* 2. カード全体（高級感のある白背景と影） */
         .card {
             background: #ffffff;
-            width: 320px;
+            width: 300px;
             padding: 30px;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* 柔らかい影 */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             text-align: center;
             transition: opacity 0.3s;
         }
-
-        /* 3. タイトル */
         h2 {
             font-size: 1.4rem;
             margin-top: 0;
@@ -36,24 +31,19 @@
             color: #2c3e50;
             font-weight: 700;
         }
-
-        /* 4. 数字表示のエリア（横並びに） */
         .monitor-row {
             display: flex;
             justify-content: center;
             gap: 15px;
             margin-bottom: 20px;
         }
-
         .monitor-box {
             flex: 1;
             padding: 15px 10px;
             border-radius: 12px;
         }
-
-        .empty-box { background: #e8f5e9; border: 1px solid #c8e6c9; } /* 薄い緑 */
-        .ready-box { background: #fff3e0; border: 1px solid #ffe0b2; } /* 薄いオレンジ */
-
+        .empty-box { background: #e8f5e9; border: 1px solid #c8e6c9; }
+        .ready-box { background: #fff3e0; border: 1px solid #ffe0b2; }
         .label {
             font-size: 0.85rem;
             color: #7f8c8d;
@@ -61,8 +51,6 @@
             display: block;
             font-weight: bold;
         }
-
-        /* 5. 数字 */
         .num {
             font-size: 2.4rem;
             font-weight: 700;
@@ -70,16 +58,13 @@
             display: inline-block;
             margin-right: 3px;
         }
-        .empty { color: #27ae60; } /* 濃い緑 */
-        .ready { color: #e67e22; } /* 濃いオレンジ */
-
+        .empty { color: #27ae60; }
+        .ready { color: #e67e22; }
         .unit {
             font-size: 1rem;
             color: #7f8c8d;
             vertical-align: bottom;
         }
-
-        /* 6. 更新日時 */
         .time {
             font-size: 0.75rem;
             color: #7f8c8d;
@@ -89,8 +74,6 @@
             display: inline-block;
             margin-top: 10px;
         }
-
-        /* 7. ボタン（モダンな青ボタン） */
         button {
             margin-top: 25px;
             padding: 12px 24px;
@@ -105,11 +88,8 @@
             box-shadow: 0 4px 10px rgba(52,152,219,0.3);
             width: 100%;
         }
-
         button:hover { background: #2980b9; }
         button:active { transform: translateY(1px); }
-
-        /* 通信中の時のスタイル（薄暗くして連打を防ぐ） */
         .loading {
             opacity: 0.5;
             pointer-events: none;
@@ -118,7 +98,7 @@
 </head>
 <body>
 
-    <div class="card">
+    <div class="card" id="main-card">
         <h2>リアルタイム空室状況</h2>
         
         <div class="monitor-row">
@@ -133,18 +113,21 @@
         </div>
 
         <div id="update-time" class="time">データ未取得</div>
-        <button onclick="fetchStatus()">手動更新</button>
+        <button id="update-btn" onclick="fetchStatus()">手動更新</button>
     </div>
 
     <script>
         const gasUrl = "https://script.google.com/macros/s/AKfycbwa3HTkFUbvar9KyQjS7hMbNKCVM5BGGmqCJDr5esrXaEqOHLvUR6GqNbsTcZMNY90B/exec";
 
         function fetchStatus() {
-            // ボタンとカードを「読み込み中」の見た目にする
-            const card = document.querySelector('.card');
-            const btn = document.querySelector('button');
-            card.classList.add('loading');
-            btn.innerText = "更新中...";
+            const card = document.getElementById('main-card');
+            const btn = document.getElementById('update-btn');
+            const timeEl = document.getElementById('update-time');
+            
+            // 読み込み中の見た目にする
+            if (card) card.classList.add('loading');
+            if (btn) btn.innerText = "更新中...";
+            if (timeEl) timeEl.innerText = "読み込み中...";
             
             fetch(gasUrl)
                 .then(response => response.json())
@@ -152,15 +135,24 @@
                     if(data.status === "success") {
                         document.getElementById('empty-rooms').innerText = data.empty;
                         document.getElementById('ready-rooms').innerText = data.ready;
-                        document.getElementById('update-time').innerText = "取得日時: " + data.updatedAt;
+                        if (timeEl) timeEl.innerText = "取得日時: " + data.updatedAt;
                     } else {
-                        document.getElementById('update-time').innerText = "エラー: データ抽出に失敗";
+                        if (timeEl) timeEl.innerText = "エラー: データ抽出失敗";
                     }
                 })
                 .catch(error => {
-                    document.getElementById('update-time').innerText = "通信エラーが発生しました";
+                    if (timeEl) timeEl.innerText = "通信エラーが発生しました";
                     console.error(error);
                 })
                 .finally(() => {
-                    // 通信が終わったら元の表示に戻す
-                    card.
+                    // 終わったら元に戻す
+                    if (card) card.classList.remove('loading');
+                    if (btn) btn.innerText = "手動更新";
+                });
+        }
+
+        // 起動時に初回読み込み
+        fetchStatus();
+    </script>
+</body>
+</html>
