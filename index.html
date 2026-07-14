@@ -25,8 +25,8 @@
     </div>
 
     <script>
-        // 先ほどコピーしたGASのウェブアプリURLに差し替えてください
-        const gasUrl = const gasUrl = "https://script.google.com/macros/s/AKfycbwa3HTkFUbvar9KyQjS7hMbNKCVM5BGGmqCJDr5esrXaEqOHLvUR6GqNbsTcZMNY90B/exec";
+        // 重複を解消した正しいGASのウェブアプリURLです
+        const gasUrl = "https://script.google.com/macros/s/AKfycbwa3HTkFUbvar9KyQjS7hMbNKCVM5BGGmqCJDr5esrXaEqOHLvUR6GqNbsTcZMNY90B/exec";
 
         function fetchStatus() {
             document.getElementById('update-time').innerText = "読み込み中...";
@@ -37,7 +37,7 @@
                     if(data.status === "success") {
                         document.getElementById('empty-rooms').innerText = data.empty;
                         document.getElementById('ready-rooms').innerText = data.ready;
-                        document.getElementById('update-time').innerText = "取得日時: " + data.updatedAt + " (20分間隔更新)";
+                        document.getElementById('update-time').innerText = "取得日時: " + data.updatedAt;
                     } else {
                         document.getElementById('update-time').innerText = "エラー: データ抽出に失敗";
                     }
