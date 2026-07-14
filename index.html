@@ -1,55 +1,108 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>空室状況モニター</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; background: #f5f5f5; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: inline-block; min-width: 280px; }
-        .num { font-size: 2.5rem; font-weight: bold; color: #333; }
-        .empty { color: #2ecc71; }
-        .ready { color: #e67e22; }
-        .time { font-size: 0.8rem; color: #7f8c8d; margin-top: 15px; }
-        button { margin-top: 20px; padding: 10px 20px; border: none; background: #3498db; color: white; border-radius: 5px; cursor: pointer; }
-    </style>
-</head>
-<body>
-
-    <div class="card">
-        <h2>リアルタイム空室状況</h2>
-        <div>空室: <span id="empty-rooms" class="num empty">-</span> 室</div>
-        <div style="margin-top: 15px;">準備中: <span id="ready-rooms" class="num ready">-</span> 室</div>
-        <div id="update-time" class="time">データ未取得</div>
-        <button onclick="fetchStatus()">手動更新</button>
-    </div>
-
-    <script>
-        // 重複を解消した正しいGASのウェブアプリURLです
-        const gasUrl = "https://script.google.com/macros/s/AKfycbwa3HTkFUbvar9KyQjS7hMbNKCVM5BGGmqCJDr5esrXaEqOHLvUR6GqNbsTcZMNY90B/exec";
-
-        function fetchStatus() {
-            document.getElementById('update-time').innerText = "読み込み中...";
-            
-            fetch(gasUrl)
-                .then(response => response.json())
-                .then(data => {
-                    if(data.status === "success") {
-                        document.getElementById('empty-rooms').innerText = data.empty;
-                        document.getElementById('ready-rooms').innerText = data.ready;
-                        document.getElementById('update-time').innerText = "取得日時: " + data.updatedAt;
-                    } else {
-                        document.getElementById('update-time').innerText = "エラー: データ抽出に失敗";
-                    }
-                })
-                .catch(error => {
-                    document.getElementById('update-time').innerText = "通信エラーが発生しました";
-                    console.error(error);
-                });
+<style>
+        /* 1. 画面全体の背景（薄いグレー） */
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
         }
 
-        // 起動時に初回読み込み
-        fetchStatus();
-    </script>
-</body>
-</html>
+        /* 2. カード全体（高級感のある白背景と影） */
+        .card {
+            background: #ffffff;
+            width: 320px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* 柔らかい影 */
+            text-align: center;
+        }
+
+        /* 3. タイトル */
+        h2 {
+            font-size: 1.4rem;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        /* 4. 数字表示のエリア（横並びに） */
+        .monitor-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .monitor-box {
+            flex: 1;
+            padding: 15px 10px;
+            border-radius: 12px;
+        }
+
+        .empty-box { background: #e8f5e9; border: 1px solid #c8e6c9; } /* 薄い緑 */
+        .ready-box { background: #fff3e0; border: 1px solid #ffe0b2; } /* 薄いオレンジ */
+
+        .label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        /* 5. 数字 */
+        .num {
+            font-size: 2.8rem;
+            font-weight: 700;
+            line-height: 1;
+            display: inline-block;
+            margin-right: 3px;
+        }
+        .empty { color: #27ae60; } /* 濃い緑 */
+        .ready { color: #e67e22; } /* 濃いオレンジ */
+
+        .unit {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            vertical-align: bottom;
+        }
+
+        /* 6. 更新日時 */
+        .time {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            background: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        /* 7. ボタン（モダンな青ボタン） */
+        button {
+            margin-top: 25px;
+            padding: 12px 24px;
+            border: none;
+            background: #3498db;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.3s, transform 0.1s;
+            box-shadow: 0 4px 10px rgba(52,152,219,0.3);
+        }
+
+        button:hover { background: #2980b9; }
+        button:active { transform: translateY(1px); }
+
+        /* 通信中の時のスタイル */
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
